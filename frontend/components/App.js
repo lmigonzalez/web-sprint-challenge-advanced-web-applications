@@ -92,8 +92,8 @@ export default function App() {
     // The flow is very similar to the `getArticles` function.
     // You'll know what to do! Use log statements or breakpoints
     // to inspect the response from the server.
-    getArticles()
-    console.log(article)
+    // getArticles()
+  
     axiosWithAuth()
     .post('/articles', article)
     .then(res=>{
@@ -106,32 +106,39 @@ export default function App() {
       console.log('this is:' + err)
     })
 
-    console.log(message)
+  
   }
 
-  const putArticle = (article) =>{
-   
-  }
 
-  const onSubmit = (article) =>{
-    if(currentArticleId){
-      putArticle(article)
-    }
-    else{
-      postArticle(article)
-    }
-  }
 
-  const updateArticle = ({ article_id, article }) => {
+  // const onSubmit = (article) =>{
+  //   if(currentArticleId){
+  //     putArticle(article)
+  //   }
+  //   else{
+  //     postArticle(article)
+  //   }
+  // }
+
+  const updateArticle = (article) => {
     // ✨ implement
     // You got this!
-    setCurrentArticleId(article_id)
-    // const {article_ids, ...changes} = article
+    // setCurrentArticleId(article.article_id)
+    const updatedArticle = {
+      title: article.title,
+      text: article.text,
+      topic: article.topic
+    }
+   
+
     axiosWithAuth()
-    .put(`/articles/${article_id}`, article)
+    .put(`/articles/${article.article_id}`, updatedArticle)
     .then(res=>{
-      console.log(res)
-      setArticles([...articles, article])
+      setCurrentArticleId(null)
+      
+      setArticles(articles.map(art=>{
+        return art.article_id === article.article_id? res.data.article: art
+      }))
       setMessage(res.data.message)
     })
     .catch(err=>{
@@ -140,13 +147,14 @@ export default function App() {
 
     
   }
-  // console.log(currentArticleId)
+
   
   const deleteArticle = article_id => {
     // ✨ implement
     axiosWithAuth()
     .delete(`/articles/${article_id}`)
     .then(res=>{
+      console.log(res)
       setMessage(res.data.message)
       setArticles(articles.filter(art =>{
         return art.article_id !== article_id 
@@ -157,8 +165,9 @@ export default function App() {
       console.log(err)
     })
 
-    // console.log("del", article_id)
   }
+
+  
 
   return (
     // ✨ fix the JSX: `Spinner`, `Message`, `LoginForm`, `ArticleForm` and `Articles` expect props ❗
@@ -177,7 +186,7 @@ export default function App() {
           <Route path="articles" element={
             <>
               <ArticleForm postArticle={postArticle} updateArticle={updateArticle} setCurrentArticleId={setCurrentArticleId} article = {articles.find(art => art.article_id === currentArticleId)}/>
-              <Articles articles={articles} getArticles={getArticles} deleteArticle={deleteArticle} setCurrentArticleId = {setCurrentArticleId} SpinnerOn ={spinnerOn} updateArticle = {updateArticle}/>
+              <Articles articles={articles} getArticles={getArticles} deleteArticle={deleteArticle} setCurrentArticleId = {setCurrentArticleId} SpinnerOn ={spinnerOn}/>
             </>
           } />
         </Routes>

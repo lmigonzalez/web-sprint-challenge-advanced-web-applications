@@ -38,7 +38,7 @@ export default function Articles(props) {
                   <p>Topic: {art.topic}</p>
                 </div>
                 <div>
-                  <button disabled={false} onClick={(e) =>updateArticle({article_id: art.article_id, article: art})}>Edit</button>
+                  <button disabled={false} onClick={(e) =>setCurrentArticleId(art.article_id)}>Edit</button>
                   <button disabled={false} onClick={(e)=> deleteArticle(art.article_id)}>Delete</button>
                 </div>
               </div>
@@ -48,7 +48,7 @@ export default function Articles(props) {
     </div>
   )
 }
-
+// article_id: art.article_id, article: art
 // (e) =>updateArticle({article_id: art.article_id})
 
 // 🔥 No touchy: Articles expects the following props exactly:

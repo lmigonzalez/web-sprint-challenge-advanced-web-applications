@@ -16,6 +16,7 @@ export default function ArticleForm(props) {
     // if it's truthy, we should set its title, text and topic into the corresponding
     // values of the form. If it's not, we should reset the form back to initial values.
     setValues(article || initialFormValues)
+
     
   }, [article])
 
@@ -30,8 +31,16 @@ export default function ArticleForm(props) {
     // ✨ implement
     // We must submit a new post or update an existing one,
     // depending on the truthyness of the `currentArticle` prop.
-    postArticle(values)
+    console.log(values)
+    if(values.article_id){
+      updateArticle(values)
+    }
+    else{
+      postArticle(values)
+    }
+
     setValues(initialFormValues)
+
   }
 
   const isDisabled = () => {
@@ -76,7 +85,7 @@ export default function ArticleForm(props) {
         <option value="Node">Node</option>
       </select>
       <div className="button-group">
-        <button disabled={istDisabled} id="submitArticle">Submit</button>
+        <button disabled={istDisabled} id="submitArticle" type='submit'>Submit</button>
         <button onClick={isDisabled} style ={{display: 'none'}} >Cancel edit</button>
       </div>
     </form>
