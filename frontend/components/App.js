@@ -1,10 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import { NavLink, Routes, Route, useNavigate } from 'react-router-dom'
 import Articles from './Articles'
 import LoginForm from './LoginForm'
 import Message from './Message'
 import ArticleForm from './ArticleForm'
 import Spinner from './Spinner'
+import axiosWithAuth from './../axios'
 
 const articlesUrl = 'http://localhost:9000/api/articles'
 const loginUrl = 'http://localhost:9000/api/login'
@@ -13,8 +15,9 @@ export default function App() {
   // ✨ MVP can be achieved with these states
   const [message, setMessage] = useState('')
   const [articles, setArticles] = useState([])
-  const [currentArticleId, setCurrentArticleId] = useState()
+  const [currentArticleId, setCurrentArticleId] = useState(null)
   const [spinnerOn, setSpinnerOn] = useState(false)
+  
 
   // ✨ Research `useNavigate` in React Router v.6
   const navigate = useNavigate()
@@ -27,6 +30,12 @@ export default function App() {
     // and a message saying "Goodbye!" should be set in its proper state.
     // In any case, we should redirect the browser back to the login screen,
     // using the helper above.
+    if(localStorage.getItem('token')){
+        localStorage.removeItem('token')
+        setMessage("Goodbye!")
+      }
+      
+      navigate('/')
   }
 
   const login = ({ username, password }) => {
@@ -36,6 +45,23 @@ export default function App() {
     // On success, we should set the token to local storage in a 'token' key,
     // put the server success message in its proper state, and redirect
     // to the Articles screen. Don't forget to turn off the spinner!
+    // setSpinnerOn(!spinnerOn)
+    
+    axios.post('http://localhost:9000/api/login', { "username": username, "password": password })
+    .then(res=>{
+      // console.log(res)
+      setMessage(res.data.message)
+      localStorage.setItem('token', res.data.token )
+      navigate('/articles')
+      setSpinnerOn(!spinnerOn)
+
+    })
+    .catch(err=>{
+      console.log({err})
+    })
+
+    
+
   }
 
   const getArticles = () => {
@@ -47,6 +73,18 @@ export default function App() {
     // If something goes wrong, check the status of the response:
     // if it's a 401 the token might have gone bad, and we should redirect to login.
     // Don't forget to turn off the spinner!
+    axiosWithAuth()
+    .get('/articles')
+    .then(res=>{
+      
+      setMessage(res.data.message)
+     
+      setArticles(res.data.articles)
+    })
+    .catch(err=>{
+      navigate('/')
+    })
+    // setSpinnerOn(!spinnerOn)
   }
 
   const postArticle = article => {
@@ -54,22 +92,79 @@ export default function App() {
     // The flow is very similar to the `getArticles` function.
     // You'll know what to do! Use log statements or breakpoints
     // to inspect the response from the server.
+    getArticles()
+    console.log(article)
+    axiosWithAuth()
+    .post('/articles', article)
+    .then(res=>{
+      
+      setMessage(res.data.message)
+      setArticles([...articles, article])
+      
+    })
+    .catch(err=>{
+      console.log('this is:' + err)
+    })
+
+    console.log(message)
+  }
+
+  const putArticle = (article) =>{
+   
+  }
+
+  const onSubmit = (article) =>{
+    if(currentArticleId){
+      putArticle(article)
+    }
+    else{
+      postArticle(article)
+    }
   }
 
   const updateArticle = ({ article_id, article }) => {
     // ✨ implement
     // You got this!
-  }
+    setCurrentArticleId(article_id)
+    // const {article_ids, ...changes} = article
+    axiosWithAuth()
+    .put(`/articles/${article_id}`, article)
+    .then(res=>{
+      console.log(res)
+      setArticles([...articles, article])
+      setMessage(res.data.message)
+    })
+    .catch(err=>{
+      console.log('from' + err)
+    })
 
+    
+  }
+  // console.log(currentArticleId)
+  
   const deleteArticle = article_id => {
     // ✨ implement
+    axiosWithAuth()
+    .delete(`/articles/${article_id}`)
+    .then(res=>{
+      setMessage(res.data.message)
+      setArticles(articles.filter(art =>{
+        return art.article_id !== article_id 
+      }))
+      console.log(res)
+    })
+    .catch(err=>{
+      console.log(err)
+    })
+
+    // console.log("del", article_id)
   }
 
   return (
     // ✨ fix the JSX: `Spinner`, `Message`, `LoginForm`, `ArticleForm` and `Articles` expect props ❗
     <React.StrictMode>
-      <Spinner />
-      <Message />
+      <Spinner on = {spinnerOn}/>
+      <Message  message={message}/>
       <button id="logout" onClick={logout}>Logout from app</button>
       <div id="wrapper" style={{ opacity: spinnerOn ? "0.25" : "1" }}> {/* <-- do not change this line */}
         <h1>Advanced Web Applications</h1>
@@ -78,11 +173,11 @@ export default function App() {
           <NavLink id="articlesScreen" to="/articles">Articles</NavLink>
         </nav>
         <Routes>
-          <Route path="/" element={<LoginForm />} />
+          <Route path="/" element={<LoginForm login={login} />} />
           <Route path="articles" element={
             <>
-              <ArticleForm />
-              <Articles />
+              <ArticleForm postArticle={postArticle} updateArticle={updateArticle} setCurrentArticleId={setCurrentArticleId} article = {articles.find(art => art.article_id === currentArticleId)}/>
+              <Articles articles={articles} getArticles={getArticles} deleteArticle={deleteArticle} setCurrentArticleId = {setCurrentArticleId} SpinnerOn ={spinnerOn} updateArticle = {updateArticle}/>
             </>
           } />
         </Routes>

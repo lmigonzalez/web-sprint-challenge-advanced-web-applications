@@ -12,6 +12,7 @@ const StyledMessage = styled.div`
 `
 
 export default function Message({ message }) {
+  // console.log(message)
   return (
     <StyledMessage key={message} id="message">
       {message}
